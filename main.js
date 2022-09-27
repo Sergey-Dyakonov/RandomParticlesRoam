@@ -70,7 +70,6 @@ if (answer === "M") {
     probabilities[2] = prompt("Enter p2 (probability of reaching south): ");
     probabilities[3] = prompt("Enter p3 (probability of reaching west): ");
     probabilities[4] = prompt("Enter p4 (probability of reaching east): ");
-
     compute(M, N, n0, m0, probabilities, quantity);
 } else if (answer === "T") {
     runTests();
