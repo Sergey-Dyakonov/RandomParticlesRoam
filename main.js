@@ -48,7 +48,7 @@ class Particle {
 }
 
 console.log("Welcome to Random Particles Roam Generator!\n");
-let answer = prompt("Do you want to enter values manually or to run compute? (M - manually / T - test): ");
+let answer = prompt("Do you want to enter values manually or to run tests? (M - manually / T - test): ");
 const SPLIT = "--------------------------------------------";
 
 while (answer !== "M" && answer !== "T") {
@@ -81,6 +81,8 @@ function runTests() {
     compute(7, 7, 4, 4, [0, 0.25, 0.25, 0.25, 0.25], 10_000);
     compute(7, 7, 4, 4, [0.04, 0.25, 0.25, 0.25, 0.25], 10_000);
     compute(7, 7, 4, 4, [0.2, 0.25, 0.25, 0.25, 0.25], 10_000);
+    compute(7, 7, 4, 4, [0.04, 0.2, 0.25, 0.25, 0.25], 10_000);
+    compute(7, 7, 4, 4, [0.2, 0.2, 0.2, 0.2, 0.2], 10_000);
     compute(9, 9, 5, 5, [0, 0, 0, 0.5, 0.5], 10_000);
     compute(9, 9, 5, 3, [0, 0, 0, 0.5, 0.5], 10_000);
     compute(9, 9, 5, 8, [0, 0, 0, 0.5, 0.5], 10_000);
@@ -106,21 +108,20 @@ function compute(M, N, n0, m0, probabilities, quantity) {
 }
 
 function isValidData(data) {
-    /* if (data.M < 0 || data.N < 0 || data.quantity < 0) {
-         return false;
-     }
-     if (data.m0 < 0 || data.m0 > data.M || data.n0 < 0 || data.n0 > data.N) {
-         return false;
-     }
-     let sum = 0;
-     for (let p in data.probabilities) {
-         if (p < 0 || p > 1) {
-             return false;
-         }
-         sum += p;
-     }
-     return sum <= 1;*/
-    return true;
+    if (data.M < 0 || data.N < 0 || data.quantity < 0) {
+        return false;
+    }
+    if (data.m0 < 0 || data.m0 > data.M || data.n0 < 0 || data.n0 > data.N) {
+        return false;
+    }
+    let sum = 0;
+    data.probabilities.forEach(function (p) {
+        if (p < 0 || p > 1) {
+            return false;
+        }
+        sum += parseFloat(p);
+    });
+    return sum === 1;
 }
 
 function printResult(data) {
