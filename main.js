@@ -1,58 +1,148 @@
-const M = 8, N = 8;
-const x = 4, y = 4;
-const p0 = 0.2, p1 = 0.2, p2 = 0.2, p3 = 0.2, p4 = 0.2;
-let north = 0, south = 0, west = 0, east = 0, stop = 0;
-const particles = 10_000_000;
+const prompt = require('prompt-sync')({sigint: true});
 
-class Particle {
-    is_stopped;
-
-    constructor(xCord, yCord) {
-        this.x = xCord;
-        this.y = yCord;
-        this.is_stopped = false;
+class ModulationData {
+    constructor(M, N, n0, m0, probabilities, quantity) {
+        this.M = M;
+        this.N = N;
+        this.n0 = n0;
+        this.m0 = m0;
+        this.probabilities = probabilities;
+        this.quantity = quantity;
     }
 
-    move() {
-        let rand = Math.random();
-        if (rand < p0) {
-            this.y++;
-        } else if (rand < p0 + p1) {
-            this.y--;
-        } else if (rand < p0 + p1 + p2) {
-            this.x++;
-        } else if (rand < p0 + p1 + p2 + p3) {
-            this.x--;
-        } /*else {
-            this.is_stopped = true;
-        }*/
+    isInGrid(n, m) {
+        if (n < 0 || n > this.N) {
+            return false;
+        }
+        return !(m < 0 || m > this.M);
     }
 }
 
-
-for (let i = 0; i < particles; i++) {
-    let point = new Particle(x, y);
-    while (point.x < M && point.x > 0
-    && point.y < N && point.y > 0 && !point.is_stopped) {
-        point.move();
+class Particle {
+    constructor(nCord, mCord) {
+        this.n = nCord;
+        this.m = mCord;
     }
-    if (point.is_stopped) {
-        stop++;
-    } else {
-        if (point.y === M) {
-            north++;
-        } else if (point.y === 0) {
-            south++;
-        } else if (point.x === N) {
-            east++;
-        } else if (point.x === 0) {
-            west++;
+
+    move(probabilities) {
+        let rand = Math.random();
+        let edge = 0;
+        for (let i = 0; i < probabilities.length; i++) {
+            edge += probabilities[i];
+            if (rand < edge) {
+                if (i === 1) {
+                    this.n--;
+                } else if (i === 2) {
+                    this.n++;
+                }
+                if (i === 3) {
+                    this.m--;
+                }
+                if (i === 4) {
+                    this.m++;
+                }
+                return i;
+            }
         }
     }
 }
 
-console.log("North: " + north / particles);
-console.log("South: " + south / particles);
-console.log("East: " + east / particles);
-console.log("West: " + west / particles);
-console.log("Stopped: " + stop / particles);
+console.log("Welcome to Random Particles Roam Generator!\n");
+let answer = prompt("Do you want to enter values manually or to run compute? (M - manually / T - test): ");
+const SPLIT = "--------------------------------------------";
+
+while (answer !== "M" && answer !== "T") {
+    console.log("Unknown option! Try again...\n");
+    answer = prompt("(M - manually / T - test): ");
+}
+
+if (answer === "M") {
+    const M = prompt("Enter M (height, north -> south): ");
+    const N = prompt("Enter M (length, west -> east): ");
+    let buf = prompt("Enter start point (x,y): ");
+    let splitted = buf.split(",");
+    const n0 = splitted[0];
+    const m0 = splitted[1];
+    const quantity = prompt("Enter number of particles: ");
+    let probabilities = new Array(5);
+    probabilities[0] = prompt("Enter p0 (probability of stopping): ");
+    probabilities[1] = prompt("Enter p1 (probability of reaching north): ");
+    probabilities[2] = prompt("Enter p2 (probability of reaching south): ");
+    probabilities[3] = prompt("Enter p3 (probability of reaching west): ");
+    probabilities[4] = prompt("Enter p4 (probability of reaching east): ");
+
+    compute(M, N, n0, m0, probabilities, quantity);
+} else if (answer === "T") {
+    runTests();
+}
+
+function runTests() {
+    compute(7, 7, 4, 4, [0, 0.25, 0.25, 0.25, 0.25], 100);
+    compute(7, 7, 4, 4, [0, 0.25, 0.25, 0.25, 0.25], 10_000);
+    compute(7, 7, 4, 4, [0.04, 0.25, 0.25, 0.25, 0.25], 10_000);
+    compute(7, 7, 4, 4, [0.2, 0.25, 0.25, 0.25, 0.25], 10_000);
+    compute(9, 9, 5, 5, [0, 0, 0, 0.5, 0.5], 10_000);
+    compute(9, 9, 5, 3, [0, 0, 0, 0.5, 0.5], 10_000);
+    compute(9, 9, 5, 8, [0, 0, 0, 0.5, 0.5], 10_000);
+}
+
+function compute(M, N, n0, m0, probabilities, quantity) {
+    let data = new ModulationData(M, N, n0, m0, probabilities, quantity);
+    if (isValidData(data)) {
+        console.log(SPLIT + "\nINPUT DATA:\n");
+        console.log("M = " + data.M + "(height)\tN = " + data.N + "(length)");
+        console.log("Start point: [" + data.m0 + ", " + data.n0 + "]");
+        console.log(data.probabilities);
+        console.log("Points quantity: " + data.quantity);
+        console.log(SPLIT + "\nTEST RESULT:\n");
+        printResult(data);
+    } else console.log("Invalid data!\n" +
+        "1. M & N must be positive\n" +
+        "2. Start point must not be out of bounds of the grid\n" +
+        "3. Number of particles must be positive\n" +
+        "4. Probalilities must be between 0 and 1\n" +
+        "5. Sum of all probabilities must equal to 1");
+    console.log(SPLIT + "\n");
+}
+
+function isValidData(data) {
+    /* if (data.M < 0 || data.N < 0 || data.quantity < 0) {
+         return false;
+     }
+     if (data.m0 < 0 || data.m0 > data.M || data.n0 < 0 || data.n0 > data.N) {
+         return false;
+     }
+     let sum = 0;
+     for (let p in data.probabilities) {
+         if (p < 0 || p > 1) {
+             return false;
+         }
+         sum += p;
+     }
+     return sum <= 1;*/
+    return true;
+}
+
+function printResult(data) {
+    let map = new Map();
+    for (let i = 0; i < data.probabilities.length; i++) {
+        map.set(i, 0);
+    }
+    for (let i = 0; i < data.quantity; i++) {
+        let particle = new Particle(data.n0, data.m0);
+        let direction;
+        while (data.isInGrid(particle.n, particle.m)) {
+            direction = particle.move(data.probabilities);
+            if (direction === 0) {
+                break;
+            }
+        }
+        map.set(direction, map.get(direction) + 1);
+    }
+    for (let i = 0; i < map.size; i++) {
+        let Q = map.get(i) / data.quantity;
+        console.log("Q" + i + ": " + Q + "\tUns: " + Math.sqrt((Q * (1 - Q)) / data.quantity));
+    }
+}
+
+
