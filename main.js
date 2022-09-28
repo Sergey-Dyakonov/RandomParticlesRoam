@@ -57,19 +57,19 @@ while (answer !== "M" && answer !== "T") {
 }
 
 if (answer === "M") {
-    const M = prompt("Enter M (height, north -> south): ");
-    const N = prompt("Enter M (length, west -> east): ");
+    const M = parseInt(prompt("Enter M (height, north -> south): "));
+    const N = parseInt(prompt("Enter M (length, west -> east): "));
     let buf = prompt("Enter start point (x,y): ");
     let splitted = buf.split(",");
-    const n0 = splitted[0];
-    const m0 = splitted[1];
-    const quantity = prompt("Enter number of particles: ");
+    const n0 = parseInt(splitted[0]);
+    const m0 = parseInt(splitted[1]);
+    const quantity = parseInt(prompt("Enter number of particles: "));
     let probabilities = new Array(5);
-    probabilities[0] = prompt("Enter p0 (probability of stopping): ");
-    probabilities[1] = prompt("Enter p1 (probability of reaching north): ");
-    probabilities[2] = prompt("Enter p2 (probability of reaching south): ");
-    probabilities[3] = prompt("Enter p3 (probability of reaching west): ");
-    probabilities[4] = prompt("Enter p4 (probability of reaching east): ");
+    probabilities[0] = parseFloat(prompt("Enter p0 (probability of stopping): "));
+    probabilities[1] = parseFloat(prompt("Enter p1 (probability of reaching north): "));
+    probabilities[2] = parseFloat(prompt("Enter p2 (probability of reaching south): "));
+    probabilities[3] = parseFloat(prompt("Enter p3 (probability of reaching west): "));
+    probabilities[4] = parseFloat(prompt("Enter p4 (probability of reaching east): "));
     compute(M, N, n0, m0, probabilities, quantity);
 } else if (answer === "T") {
     runTests();
@@ -141,8 +141,7 @@ function printResult(data) {
     }
     for (let i = 0; i < map.size; i++) {
         let Q = map.get(i) / data.quantity;
-        console.log("Q" + i + ": " + Q + "\tUns: " + Math.sqrt((Q * (1 - Q)) / data.quantity));
+        console.log("Q" + i + ": " + Q + "\tUns: " +
+            Math.sqrt((Q * (1 - Q)) / data.quantity));
     }
 }
-
-
